@@ -44,6 +44,7 @@ private[deploy] class ExecutorRunner(
     val memory: Int,
     val worker: RpcEndpointRef,
     val workerId: String,
+    val bindAddress: String,
     val host: String,
     val webUiPort: Int,
     val publicAddress: String,
@@ -130,6 +131,7 @@ private[deploy] class ExecutorRunner(
   private[worker] def substituteVariables(argument: String): String = argument match {
     case "{{WORKER_URL}}" => workerUrl
     case "{{EXECUTOR_ID}}" => execId.toString
+    case "{{BIND_ADDRESS}}" => bindAddress
     case "{{HOSTNAME}}" => host
     case "{{CORES}}" => cores.toString
     case "{{APP_ID}}" => appId

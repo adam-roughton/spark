@@ -65,6 +65,7 @@ private[deploy] object DeployTestUtils {
       null,
       "workerId",
       "host",
+      "host",
       123,
       "publicAddress",
       new File("sparkHome"),

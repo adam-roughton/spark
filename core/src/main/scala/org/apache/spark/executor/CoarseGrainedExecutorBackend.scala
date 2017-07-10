@@ -177,6 +177,7 @@ private[spark] object CoarseGrainedExecutorBackend extends Logging {
   private def run(
       driverUrl: String,
       executorId: String,
+      bindAddress: String,
       hostname: String,
       cores: Int,
       appId: String,
@@ -194,6 +195,7 @@ private[spark] object CoarseGrainedExecutorBackend extends Logging {
       val port = executorConf.getInt("spark.executor.port", 0)
       val fetcher = RpcEnv.create(
         "driverPropsFetcher",
+        bindAddress,
         hostname,
         port,
         executorConf,
@@ -221,7 +223,8 @@ private[spark] object CoarseGrainedExecutorBackend extends Logging {
       }
 
       val env = SparkEnv.createExecutorEnv(
-        driverConf, executorId, hostname, port, cores, cfg.ioEncryptionKey, isLocal = false)
+        driverConf, executorId, bindAddress, hostname, port,
+        cores, cfg.ioEncryptionKey, isLocal = false)
 
       env.rpcEnv.setupEndpoint("Executor", new CoarseGrainedExecutorBackend(
         env.rpcEnv, driverUrl, executorId, hostname, cores, userClassPath, env))
@@ -236,6 +239,7 @@ private[spark] object CoarseGrainedExecutorBackend extends Logging {
   def main(args: Array[String]) {
     var driverUrl: String = null
     var executorId: String = null
+    var bindAddress: String = null
     var hostname: String = null
     var cores: Int = 0
     var appId: String = null
@@ -250,6 +254,9 @@ private[spark] object CoarseGrainedExecutorBackend extends Logging {
           argv = tail
         case ("--executor-id") :: value :: tail =>
           executorId = value
+          argv = tail
+        case ("--bind-address") :: value :: tail =>
+          bindAddress = value
           argv = tail
         case ("--hostname") :: value :: tail =>
           hostname = value
@@ -281,7 +288,9 @@ private[spark] object CoarseGrainedExecutorBackend extends Logging {
       printUsageAndExit()
     }
 
-    run(driverUrl, executorId, hostname, cores, appId, workerUrl, userClassPath)
+    bindAddress = if (bindAddress == null) hostname else bindAddress
+
+    run(driverUrl, executorId, bindAddress, hostname, cores, appId, workerUrl, userClassPath)
     System.exit(0)
   }
 

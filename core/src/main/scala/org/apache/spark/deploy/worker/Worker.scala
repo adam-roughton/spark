@@ -42,6 +42,7 @@ import org.apache.spark.util.{ThreadUtils, Utils}
 
 private[deploy] class Worker(
     override val rpcEnv: RpcEnv,
+    bindAddress: String,
     webUiPort: Int,
     cores: Int,
     memory: Int,
@@ -468,6 +469,7 @@ private[deploy] class Worker(
             memory_,
             self,
             workerId,
+            bindAddress,
             host,
             webUi.boundPort,
             publicAddress,
@@ -693,13 +695,14 @@ private[deploy] object Worker extends Logging {
     Utils.initDaemon(log)
     val conf = new SparkConf
     val args = new WorkerArguments(argStrings, conf)
-    val rpcEnv = startRpcEnvAndEndpoint(args.host, args.port, args.webUiPort, args.cores,
-      args.memory, args.masters, args.workDir, conf = conf)
+    val rpcEnv = startRpcEnvAndEndpoint(args.host, args.bindAddress, args.port, args.webUiPort,
+      args.cores, args.memory, args.masters, args.workDir, conf = conf)
     rpcEnv.awaitTermination()
   }
 
   def startRpcEnvAndEndpoint(
       host: String,
+      bindAddress: String,
       port: Int,
       webUiPort: Int,
       cores: Int,
@@ -712,9 +715,9 @@ private[deploy] object Worker extends Logging {
     // The LocalSparkCluster runs multiple local sparkWorkerX RPC Environments
     val systemName = SYSTEM_NAME + workerNumber.map(_.toString).getOrElse("")
     val securityMgr = new SecurityManager(conf)
-    val rpcEnv = RpcEnv.create(systemName, host, port, conf, securityMgr)
+    val rpcEnv = RpcEnv.create(systemName, bindAddress, host, port, conf, securityMgr, false)
     val masterAddresses = masterUrls.map(RpcAddress.fromSparkURL(_))
-    rpcEnv.setupEndpoint(ENDPOINT_NAME, new Worker(rpcEnv, webUiPort, cores, memory,
+    rpcEnv.setupEndpoint(ENDPOINT_NAME, new Worker(rpcEnv, bindAddress, webUiPort, cores, memory,
       masterAddresses, ENDPOINT_NAME, workDir, conf, securityMgr))
     rpcEnv
   }

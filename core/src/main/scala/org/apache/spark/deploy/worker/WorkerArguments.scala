@@ -29,6 +29,7 @@ import org.apache.spark.SparkConf
  */
 private[worker] class WorkerArguments(args: Array[String], conf: SparkConf) {
   var host = Utils.localHostName()
+  var bindAddress = host
   var port = 0
   var webUiPort = 8081
   var cores = inferDefaultCores()
@@ -52,6 +53,9 @@ private[worker] class WorkerArguments(args: Array[String], conf: SparkConf) {
   }
   if (System.getenv("SPARK_WORKER_DIR") != null) {
     workDir = System.getenv("SPARK_WORKER_DIR")
+  }
+  if (System.getenv("SPARK_WORKER_BIND_ADDRESS") != null) {
+    bindAddress = System.getenv("SPARK_WORKER_BIND_ADDRESS")
   }
 
   parse(args.toList)

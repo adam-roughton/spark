@@ -68,6 +68,7 @@ private[spark] class StandaloneSchedulerBackend(
     val args = Seq(
       "--driver-url", driverUrl,
       "--executor-id", "{{EXECUTOR_ID}}",
+      "--bind-address", "{{BIND_ADDRESS}}",
       "--hostname", "{{HOSTNAME}}",
       "--cores", "{{CORES}}",
       "--app-id", "{{APP_ID}}",
